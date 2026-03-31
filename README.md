@@ -16,22 +16,93 @@ Heavy tools like cc-switch use SQLite databases, GUI frameworks, and background 
 - **Reversible** — `taco restore` cleanly removes all changes
 - **Non-destructive** — only modifies the `env` field in Claude's settings, preserving everything else
 
-## Quick Start
+## Installation
 
-### Install
+### Method 1: Download pre-built binary (recommended, no Go required)
+
+Go to [Releases](https://github.com/maddenmanel/taco/releases) and download the binary for your platform:
+
+| Platform | File |
+|----------|------|
+| Linux x86_64 | `taco-linux-amd64` |
+| Linux ARM64 | `taco-linux-arm64` |
+| macOS Intel | `taco-darwin-amd64` |
+| macOS Apple Silicon | `taco-darwin-arm64` |
+| Windows x86_64 | `taco-windows-amd64.exe` |
+| Windows ARM64 | `taco-windows-arm64.exe` |
+
+#### Linux / macOS one-liner
+
+```bash
+curl -sSL https://raw.githubusercontent.com/maddenmanel/taco/main/install.sh | sh
+```
+
+Or manually:
+
+```bash
+# Example for Linux x86_64:
+curl -Lo taco https://github.com/maddenmanel/taco/releases/latest/download/taco-linux-amd64
+chmod +x taco
+sudo mv taco /usr/local/bin/
+```
+
+#### Windows (PowerShell)
+
+```powershell
+# Download the binary
+Invoke-WebRequest -Uri "https://github.com/maddenmanel/taco/releases/latest/download/taco-windows-amd64.exe" -OutFile "$env:USERPROFILE\taco.exe"
+
+# Add to PATH (run once)
+$binDir = "$env:USERPROFILE\bin"
+New-Item -ItemType Directory -Force -Path $binDir | Out-Null
+Move-Item "$env:USERPROFILE\taco.exe" "$binDir\taco.exe" -Force
+
+# Add bin dir to PATH permanently
+$currentPath = [Environment]::GetEnvironmentVariable("Path", "User")
+if ($currentPath -notlike "*$binDir*") {
+    [Environment]::SetEnvironmentVariable("Path", "$currentPath;$binDir", "User")
+}
+
+# Refresh current session
+$env:Path += ";$binDir"
+```
+
+After installation, verify with:
+
+```powershell
+taco --help
+```
+
+#### Windows (Scoop)
+
+```powershell
+# Coming soon — once published to a scoop bucket:
+# scoop install taco
+```
+
+### Method 2: Go install (requires Go 1.24+)
 
 ```bash
 go install github.com/maddenmanel/taco@latest
 ```
 
-Or build from source:
+### Method 3: Build from source
 
 ```bash
 git clone https://github.com/maddenmanel/taco.git
 cd taco
 go build -o taco .
-sudo mv taco /usr/local/bin/
+sudo mv taco /usr/local/bin/   # Linux/macOS
+# Windows: move taco.exe to a directory in your PATH
 ```
+
+### Build all platforms at once
+
+```bash
+make all    # Outputs to dist/
+```
+
+## Quick Start
 
 ### Usage
 
@@ -113,11 +184,31 @@ TACO modifies the `env` field in `~/.claude/settings.json` to redirect Claude Co
 
 ## File Locations
 
-| Path | Purpose |
-|------|---------|
-| `~/.taco/config.json` | Your provider configurations |
-| `~/.claude/settings.json` | Claude Code settings (modified by TACO) |
-| `~/.claude/.settings.taco-backup.json` | Auto-backup before each switch |
+| Linux / macOS | Windows | Purpose |
+|---------------|---------|---------|
+| `~/.taco/config.json` | `%USERPROFILE%\.taco\config.json` | Your provider configurations |
+| `~/.claude/settings.json` | `%USERPROFILE%\.claude\settings.json` | Claude Code settings (modified by TACO) |
+| `~/.claude/.settings.taco-backup.json` | `%USERPROFILE%\.claude\.settings.taco-backup.json` | Auto-backup before each switch |
+
+## Uninstall
+
+TACO is a single binary with no background services. To remove completely:
+
+```bash
+# Linux / macOS
+rm /usr/local/bin/taco
+rm -rf ~/.taco
+
+# Restore Claude to official config first
+taco restore
+```
+
+```powershell
+# Windows (PowerShell)
+taco restore
+Remove-Item "$env:USERPROFILE\bin\taco.exe" -Force
+Remove-Item "$env:USERPROFILE\.taco" -Recurse -Force
+```
 
 ## License
 

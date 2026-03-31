@@ -1,6 +1,7 @@
 # Binary
 taco
 taco.exe
+dist/
 
 # OS
 .DS_Store
