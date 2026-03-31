@@ -1,152 +1,164 @@
 # CLAUDE.md
 
-This file provides guidance to AI assistants (Claude and others) working in this repository.
+This file provides guidance to AI assistants working in this repository.
 
 ## Repository Overview
 
-**Project**: taco  
+**Project**: TACO 🌮 (Terminal AI Configuration Organizer)  
 **Owner**: maddenmanel  
-**Status**: Initial setup — no application code yet.
-
-This file should be updated as the project evolves to reflect the actual codebase structure, conventions, and workflows.
-
----
-
-## Development Branch
-
-All Claude-initiated development should occur on branches prefixed with `claude/`. The current documentation branch is `claude/add-claude-documentation-huUHz`.
-
-Never push directly to `main` without explicit user approval.
-
----
-
-## Git Conventions
-
-### Commit Messages
-- Use the imperative mood: "Add feature" not "Added feature"
-- Keep the subject line under 72 characters
-- Include a blank line before the body if more context is needed
-- Reference issue numbers when applicable: `Fix login bug (#42)`
-
-### Branch Naming
-- Features: `feature/<short-description>`
-- Bug fixes: `fix/<short-description>`
-- Claude-initiated work: `claude/<short-description>-<id>`
-- Documentation: `docs/<short-description>`
-
-### Commit Signing
-This repository is configured with SSH commit signing (`gpgformat = ssh`). All commits must be signed. Do not bypass signing with `--no-gpg-sign`.
-
-### Pull Requests
-- Do not create a pull request unless explicitly asked by the user
-- PR titles should be short (under 70 characters)
-- Include a summary and test plan in the PR body
-
----
-
-## AI Assistant Behavior
-
-### General Rules
-- Read files before modifying them
-- Do not create files unless strictly necessary
-- Do not add features or refactoring beyond what is asked
-- Do not add comments, docstrings, or type annotations to unchanged code
-- Prefer editing existing files over creating new ones
-- Match the scope of changes to what was actually requested
-
-### Security
-- Never introduce command injection, XSS, SQL injection, or other OWASP Top 10 vulnerabilities
-- Validate only at system boundaries (user input, external APIs)
-- Do not commit secrets, credentials, or `.env` files
-
-### Reversibility
-Confirm with the user before taking irreversible or high-blast-radius actions:
-- Deleting files or branches
-- Force-pushing
-- Dropping database tables or data
-- Modifying CI/CD pipelines
-- Pushing to shared branches
+**Language**: Go 1.24+  
+**Purpose**: Lightweight CLI tool for seamlessly switching Claude Code between AI providers (DeepSeek, OpenRouter, SiliconFlow, etc.)
 
 ---
 
 ## Codebase Structure
 
-> To be populated as the project develops.
-
 ```
 taco/
-├── CLAUDE.md          # This file
-└── ...                # Application code to be added
+├── main.go                  # Entry point — calls cmd.Execute()
+├── go.mod / go.sum           # Go module dependencies
+├── cmd/                      # CLI command definitions (cobra)
+│   ├── root.go               # Root command & app description
+│   ├── add.go                # `taco add` — register a provider
+│   ├── use.go                # `taco use` — switch active provider
+│   ├── list.go               # `taco list` — show all providers
+│   ├── current.go            # `taco current` — show active provider
+│   ├── restore.go            # `taco restore` — revert to official Claude
+│   └── remove.go             # `taco remove` — delete a provider
+├── pkg/
+│   ├── config/
+│   │   └── config.go         # TacoConfig model, ~/.taco/config.json R/W
+│   ├── claude/
+│   │   └── settings.go       # ~/.claude/settings.json injection & restore
+│   └── provider/
+│       └── presets.go         # Built-in provider presets (DeepSeek, etc.)
+├── CLAUDE.md                 # This file
+├── README.md                 # User-facing documentation
+└── .gitignore
 ```
 
 ---
 
 ## Technology Stack
 
-> To be documented once the project stack is established.
-
-Typical sections to fill in:
-- **Language(s)**: e.g., TypeScript, Python, Go
-- **Framework(s)**: e.g., Next.js, FastAPI, Gin
-- **Package manager**: e.g., npm, pnpm, poetry, go modules
-- **Database**: e.g., PostgreSQL, SQLite
-- **Infrastructure**: e.g., Docker, Kubernetes, AWS
+- **Language**: Go 1.24+
+- **CLI Framework**: [spf13/cobra](https://github.com/spf13/cobra)
+- **Package Manager**: Go modules (`go mod`)
+- **Database**: None — all config is plain JSON files
+- **External Dependencies**: cobra, pflag (transitive)
 
 ---
 
 ## Development Workflow
 
-> To be documented once tooling is in place.
+### Build
 
-Typical sections to fill in:
-- How to install dependencies
-- How to run the application locally
-- How to run tests
-- How to build for production
-- Environment variable setup (`.env.example`)
+```bash
+go build -o taco .
+```
+
+### Run locally
+
+```bash
+./taco --help
+./taco add deepseek --key="sk-test"
+./taco use deepseek
+./taco current
+./taco restore
+```
+
+### Install globally
+
+```bash
+go install github.com/maddenmanel/taco@latest
+```
+
+### Cross-compile
+
+```bash
+GOOS=darwin  GOARCH=arm64 go build -o taco-darwin-arm64 .
+GOOS=windows GOARCH=amd64 go build -o taco.exe .
+GOOS=linux   GOARCH=amd64 go build -o taco-linux-amd64 .
+```
 
 ---
 
-## Testing
+## Architecture & Key Concepts
 
-> To be documented once a test framework is chosen.
+### How switching works
 
-Typical sections to fill in:
-- Test framework and runner
-- How to run unit tests
-- How to run integration/e2e tests
-- Coverage requirements
+1. User runs `taco use <provider>`
+2. TACO reads `~/.claude/settings.json`
+3. Backs up the file to `~/.claude/.settings.taco-backup.json`
+4. Injects/updates only the `env` field with provider-specific vars:
+   - `ANTHROPIC_BASE_URL`, `ANTHROPIC_AUTH_TOKEN`
+   - `ANTHROPIC_DEFAULT_OPUS_MODEL`, `ANTHROPIC_DEFAULT_SONNET_MODEL`
+5. User runs `claude` normally — requests route through the new provider
+
+### Key design principles
+
+- **Non-destructive**: Only the `env` field in settings.json is modified; all other user settings are preserved
+- **Reversible**: `taco restore` cleanly removes all injected vars
+- **Transparent**: All config is plain JSON — users can inspect and hand-edit
+- **No daemon**: TACO runs, modifies config, exits immediately
+
+### File locations at runtime
+
+| Path | Purpose |
+|------|---------|
+| `~/.taco/config.json` | Provider configurations (API keys, URLs, models) |
+| `~/.claude/settings.json` | Claude Code settings (TACO modifies `env` field) |
+| `~/.claude/.settings.taco-backup.json` | Auto-backup before each switch |
 
 ---
 
 ## Code Conventions
 
-> To be documented as conventions emerge.
+### Go style
+- Follow standard `gofmt` formatting
+- Error handling: return `fmt.Errorf("context: %w", err)` for wrapping
+- Package naming: short, lowercase, single-word (`config`, `claude`, `provider`)
+- Exported functions have doc comments; unexported helpers do not need them
 
-Typical sections to fill in:
-- Linter/formatter configuration
-- Naming conventions (files, functions, variables)
-- Module/package organization patterns
-- Error handling patterns
-- Logging conventions
+### Package responsibilities
+- `cmd/` — CLI wiring only; delegates to `pkg/` for logic
+- `pkg/config/` — TACO's own config (provider list, active provider)
+- `pkg/claude/` — reading/writing Claude Code's `settings.json`
+- `pkg/provider/` — built-in preset definitions (no I/O)
+
+### Adding a new provider preset
+Edit `pkg/provider/presets.go` and add an entry to `BuiltinPresets`.
+
+### Adding a new CLI command
+1. Create `cmd/<command>.go`
+2. Define the cobra command
+3. Register it with `rootCmd.AddCommand()` in `init()`
 
 ---
 
-## Key Files to Know
+## Git Conventions
 
-> Update this section as the project grows.
+### Commit Messages
+- Imperative mood: "Add feature" not "Added feature"
+- Subject line under 72 characters
+- Reference issues when applicable: `Fix login bug (#42)`
 
-| File | Purpose |
-|------|---------|
-| `CLAUDE.md` | AI assistant guidance (this file) |
+### Branch Naming
+- Features: `feature/<short-description>`
+- Bug fixes: `fix/<short-description>`
+- Claude-initiated: `claude/<short-description>-<id>`
+
+### Commit Signing
+SSH commit signing is enabled. Do not bypass with `--no-gpg-sign`.
 
 ---
 
-## Updating This File
+## AI Assistant Behavior
 
-When the project grows, update this file to reflect:
-1. Actual directory structure
-2. Real technology stack and version requirements
-3. Concrete setup and run instructions
-4. Observed code conventions and patterns
-5. Test commands and coverage expectations
+- Read files before modifying them
+- Do not add features beyond what is asked
+- Do not create a PR unless explicitly requested
+- Do not commit secrets or API keys
+- Confirm before destructive actions (deleting files, force-pushing, etc.)
+- Keep the binary name as `taco` — do not rename
+- When modifying provider presets, verify the base URL format is correct for that provider's Anthropic-compatible endpoint

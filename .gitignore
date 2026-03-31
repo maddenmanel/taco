@@ -1,0 +1,13 @@
+# Binary
+taco
+taco.exe
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
