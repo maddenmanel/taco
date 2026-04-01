@@ -18,112 +18,39 @@ Heavy tools like cc-switch use SQLite databases, GUI frameworks, and background 
 
 ## Installation
 
-### Method 1: Download pre-built binary (recommended, no Go required)
+One command. No admin rights. No package manager required.
 
-Go to [Releases](https://github.com/maddenmanel/taco/releases) and download the binary for your platform:
-
-| Platform | File |
-|----------|------|
-| Linux x86_64 | `taco-linux-amd64` |
-| Linux ARM64 | `taco-linux-arm64` |
-| macOS Intel | `taco-darwin-amd64` |
-| macOS Apple Silicon | `taco-darwin-arm64` |
-| Windows x86_64 | `taco-windows-amd64.exe` |
-| Windows ARM64 | `taco-windows-arm64.exe` |
-
-#### Linux / macOS one-liner
+### Linux / macOS
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/maddenmanel/taco/main/install.sh | sh
 ```
 
-Or manually:
+Installs to `~/.local/bin/taco`. That's it.
 
-```bash
-# Example for Linux x86_64:
-curl -Lo taco https://github.com/maddenmanel/taco/releases/latest/download/taco-linux-amd64
-chmod +x taco
-sudo mv taco /usr/local/bin/
-```
-
-#### Windows — Option A: Scoop (recommended, no security warning)
-
-[Scoop](https://scoop.sh) installs binaries without triggering Windows SmartScreen warnings.
+### Windows (PowerShell)
 
 ```powershell
-# Install Scoop if you don't have it
-irm get.scoop.sh | iex
-
-# Add the TACO bucket and install
-scoop bucket add taco https://github.com/maddenmanel/taco
-scoop install taco
+irm https://raw.githubusercontent.com/maddenmanel/taco/main/install.ps1 | iex
 ```
 
-#### Windows — Option B: PowerShell manual install
+Installs to `%USERPROFILE%\.taco\bin\taco.exe`, adds it to your PATH, and automatically removes the "downloaded from internet" flag — **no SmartScreen warning**.
 
-> **Note on Windows SmartScreen:** Windows may show a security warning the first time you run a downloaded `.exe` from a new publisher. This is expected for any unsigned open-source binary. See [below](#windows-smartscreen-warning) for how to handle it safely.
+Open a new terminal window after installation and run `taco --help`.
 
-```powershell
-# Download the binary
-Invoke-WebRequest -Uri "https://github.com/maddenmanel/taco/releases/latest/download/taco-windows-amd64.exe" -OutFile "$env:USERPROFILE\taco.exe"
-
-# Add to PATH (run once)
-$binDir = "$env:USERPROFILE\bin"
-New-Item -ItemType Directory -Force -Path $binDir | Out-Null
-Move-Item "$env:USERPROFILE\taco.exe" "$binDir\taco.exe" -Force
-
-# Add bin dir to PATH permanently
-$currentPath = [Environment]::GetEnvironmentVariable("Path", "User")
-if ($currentPath -notlike "*$binDir*") {
-    [Environment]::SetEnvironmentVariable("Path", "$currentPath;$binDir", "User")
-}
-
-# Refresh current session
-$env:Path += ";$binDir"
-```
-
-After installation, verify with:
-
-```powershell
-taco --help
-```
-
-#### Windows SmartScreen Warning
-
-When downloading an unsigned `.exe` directly, Windows SmartScreen may block it with _"Windows protected your PC"_. TACO is open source — you can review every line of code in this repository. To proceed:
-
-1. Click **"More info"** in the SmartScreen dialog
-2. Click **"Run anyway"**
-
-Or unblock it via PowerShell before running:
-
-```powershell
-Unblock-File -Path "$env:USERPROFILE\bin\taco.exe"
-```
-
-**Use Scoop (Option A) to avoid this entirely** — Scoop bypasses SmartScreen for packages installed through its manifest system.
-
-### Method 2: Go install (requires Go 1.24+)
+### With Go (any platform)
 
 ```bash
 go install github.com/maddenmanel/taco@latest
 ```
 
-### Method 3: Build from source
+## Uninstall
 
 ```bash
-git clone https://github.com/maddenmanel/taco.git
-cd taco
-go build -o taco .
-sudo mv taco /usr/local/bin/   # Linux/macOS
-# Windows: move taco.exe to a directory in your PATH
+taco uninstall
 ```
 
-### Build all platforms at once
-
-```bash
-make all    # Outputs to dist/
-```
+That's it — restores Claude to official config, removes all TACO data, and deletes the binary. One command, completely clean.
 
 ## Quick Start
 
@@ -212,26 +139,6 @@ TACO modifies the `env` field in `~/.claude/settings.json` to redirect Claude Co
 | `~/.taco/config.json` | `%USERPROFILE%\.taco\config.json` | Your provider configurations |
 | `~/.claude/settings.json` | `%USERPROFILE%\.claude\settings.json` | Claude Code settings (modified by TACO) |
 | `~/.claude/.settings.taco-backup.json` | `%USERPROFILE%\.claude\.settings.taco-backup.json` | Auto-backup before each switch |
-
-## Uninstall
-
-TACO is a single binary with no background services. To remove completely:
-
-```bash
-# Linux / macOS
-rm /usr/local/bin/taco
-rm -rf ~/.taco
-
-# Restore Claude to official config first
-taco restore
-```
-
-```powershell
-# Windows (PowerShell)
-taco restore
-Remove-Item "$env:USERPROFILE\bin\taco.exe" -Force
-Remove-Item "$env:USERPROFILE\.taco" -Recurse -Force
-```
 
 ## License
 

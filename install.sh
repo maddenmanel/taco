@@ -1,79 +1,91 @@
 #!/bin/sh
+# TACO Installer — Linux & macOS
+# Usage: curl -sSL https://raw.githubusercontent.com/maddenmanel/taco/main/install.sh | sh
 set -e
 
-# TACO Installer — downloads the latest pre-built binary for your platform.
-# Usage: curl -sSL https://raw.githubusercontent.com/maddenmanel/taco/main/install.sh | sh
-
 REPO="maddenmanel/taco"
-INSTALL_DIR="/usr/local/bin"
-APP_NAME="taco"
+BIN_NAME="taco"
+INSTALL_DIR="$HOME/.local/bin"
 
-get_os() {
-  case "$(uname -s)" in
-    Linux*)  echo "linux" ;;
-    Darwin*) echo "darwin" ;;
-    MINGW*|MSYS*|CYGWIN*) echo "windows" ;;
-    *) echo "unsupported"; exit 1 ;;
-  esac
-}
+# Colors
+GREEN='\033[0;32m'
+BOLD='\033[1m'
+RESET='\033[0m'
 
-get_arch() {
-  case "$(uname -m)" in
-    x86_64|amd64) echo "amd64" ;;
-    arm64|aarch64) echo "arm64" ;;
-    *) echo "unsupported"; exit 1 ;;
-  esac
-}
+say() { printf "${BOLD}%s${RESET}\n" "$1"; }
+ok()  { printf "${GREEN}✓${RESET} %s\n" "$1"; }
 
-OS=$(get_os)
-ARCH=$(get_arch)
-
-echo "🌮 TACO Installer"
-echo "   OS:   ${OS}"
-echo "   Arch: ${ARCH}"
+say "🌮 TACO Installer"
 echo ""
 
-# Get latest release tag
-LATEST=$(curl -sSL "https://api.github.com/repos/${REPO}/releases/latest" | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
+# Detect platform
+OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+ARCH=$(uname -m)
+
+case "$ARCH" in
+    x86_64|amd64)   ARCH="amd64" ;;
+    arm64|aarch64)  ARCH="arm64" ;;
+    *) echo "Unsupported architecture: $ARCH"; exit 1 ;;
+esac
+
+case "$OS" in
+    linux)  ;;
+    darwin) ;;
+    *) echo "Unsupported OS: $OS"; exit 1 ;;
+esac
+
+FILENAME="${BIN_NAME}-${OS}-${ARCH}"
+
+# Get latest version
+LATEST=$(curl -sSL "https://api.github.com/repos/${REPO}/releases/latest" \
+    | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
 
 if [ -z "$LATEST" ]; then
-  echo "Error: Could not determine latest release."
-  echo "Please download manually from: https://github.com/${REPO}/releases"
-  exit 1
+    echo "Could not determine latest version."
+    echo "Check: https://github.com/${REPO}/releases"
+    exit 1
 fi
 
-echo "   Version: ${LATEST}"
+ok "Version: $LATEST"
+ok "Platform: ${OS}/${ARCH}"
 
-# Build download URL
-SUFFIX=""
-if [ "$OS" = "windows" ]; then
-  SUFFIX=".exe"
+# Ensure install dir exists and is in PATH
+mkdir -p "$INSTALL_DIR"
+
+if ! echo "$PATH" | grep -q "$INSTALL_DIR"; then
+    SHELL_RC=""
+    case "$SHELL" in
+        */zsh)  SHELL_RC="$HOME/.zshrc" ;;
+        */fish) SHELL_RC="$HOME/.config/fish/config.fish" ;;
+        *)      SHELL_RC="$HOME/.bashrc" ;;
+    esac
+    echo "export PATH=\"\$HOME/.local/bin:\$PATH\"" >> "$SHELL_RC"
+    ok "Added ~/.local/bin to PATH in $SHELL_RC"
+    export PATH="$HOME/.local/bin:$PATH"
 fi
-FILENAME="${APP_NAME}-${OS}-${ARCH}${SUFFIX}"
+
+# Download
 URL="https://github.com/${REPO}/releases/download/${LATEST}/${FILENAME}"
-
-echo "   Downloading: ${URL}"
-echo ""
-
-# Download binary
 TMPFILE=$(mktemp)
+echo ""
+echo "Downloading from GitHub..."
 curl -sSL -o "$TMPFILE" "$URL"
 
 if [ ! -s "$TMPFILE" ]; then
-  echo "Error: Download failed."
-  rm -f "$TMPFILE"
-  exit 1
+    echo "Download failed. URL: $URL"
+    rm -f "$TMPFILE"
+    exit 1
 fi
 
 chmod +x "$TMPFILE"
+mv "$TMPFILE" "${INSTALL_DIR}/${BIN_NAME}"
 
-# Install
-if [ -w "$INSTALL_DIR" ]; then
-  mv "$TMPFILE" "${INSTALL_DIR}/${APP_NAME}"
-else
-  echo "   Installing to ${INSTALL_DIR} (requires sudo)..."
-  sudo mv "$TMPFILE" "${INSTALL_DIR}/${APP_NAME}"
-fi
-
-echo "🌮 TACO installed successfully!"
-echo "   Run: taco --help"
+echo ""
+ok "Installed to ${INSTALL_DIR}/${BIN_NAME}"
+echo ""
+printf "${BOLD}Get started:${RESET}\n"
+echo "  taco add deepseek --key=\"sk-your-key\""
+echo "  taco use deepseek"
+echo "  taco --help"
+echo ""
+echo "To uninstall at any time: taco uninstall"
