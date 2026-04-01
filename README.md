@@ -85,23 +85,43 @@ taco restore
 | Command | Description |
 |---------|-------------|
 | `taco add <name> --key=KEY` | Add/update a provider |
-| `taco use <name>` | Switch Claude Code to a provider |
+| `taco use [name]` | Switch provider (interactive picker if no name given) |
+| `taco test [name]` | Verify API key and connectivity |
 | `taco current` | Show the active provider |
-| `taco list` | List configured & available providers |
+| `taco list` | List configured providers and all available presets |
 | `taco restore` | Restore official Anthropic config |
 | `taco remove <name>` | Remove a provider |
+| `taco uninstall` | Remove TACO completely |
+| `taco version` | Print version |
 
 ## Built-in Presets
 
-These providers are preconfigured — just supply your API key:
+15 providers preconfigured — just supply your API key.
 
-| Name | Provider | Base URL |
-|------|----------|----------|
-| `deepseek` | DeepSeek | `https://api.deepseek.com/anthropic` |
-| `openrouter` | OpenRouter | `https://openrouter.ai/api/v1` |
-| `siliconflow` | SiliconFlow (硅基流动) | `https://api.siliconflow.cn/anthropic` |
-| `zhipu` | Zhipu AI (智谱) | `https://open.bigmodel.cn/api/paas/v4` |
-| `volcengine` | Volcengine (火山引擎/豆包) | `https://ark.cn-beijing.volces.com/api/v3` |
+### International
+
+| Name | Provider |
+|------|----------|
+| `deepseek` | DeepSeek |
+| `openrouter` | OpenRouter |
+| `groq` | Groq (fastest inference) |
+| `together` | Together AI |
+| `mistral` | Mistral AI |
+
+### China / 国内
+
+| Name | Provider |
+|------|----------|
+| `siliconflow` | SiliconFlow (硅基流动) |
+| `zhipu` | Zhipu AI (智谱 GLM) |
+| `volcengine` | Volcengine (火山引擎·豆包) |
+| `moonshot` | Moonshot AI (月之暗面·Kimi) |
+| `qwen` | Alibaba Qwen (通义千问) |
+| `yi` | 01.AI (零一万物·Yi) |
+| `baichuan` | Baichuan AI (百川智能) |
+| `minimax` | MiniMax (海螺 AI) |
+| `stepfun` | Stepfun (阶跃星辰) |
+| `infini` | Infini-AI (无问芯穹) |
 
 ### Custom Providers
 
@@ -109,8 +129,8 @@ These providers are preconfigured — just supply your API key:
 taco add my-proxy \
   --key="sk-xxx" \
   --url="https://my-proxy.com/v1" \
-  --sonnet="gpt-4o" \
-  --opus="o1-preview"
+  --sonnet="my-model" \
+  --opus="my-model-pro"
 ```
 
 ## How It Works

@@ -1,6 +1,7 @@
 APP_NAME := taco
 VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
-LDFLAGS := -s -w -X main.version=$(VERSION)
+VERSION_PKG := github.com/maddenmanel/taco/cmd
+LDFLAGS := -s -w -X $(VERSION_PKG).Version=$(VERSION)
 BUILD_DIR := dist
 
 .PHONY: build clean all

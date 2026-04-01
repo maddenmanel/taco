@@ -45,7 +45,9 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
         run: |
-          go build -ldflags "-s -w" -o taco-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.suffix }} .
+          go build \
+            -ldflags "-s -w -X github.com/maddenmanel/taco/cmd.Version=${{ github.ref_name }}" \
+            -o taco-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.suffix }} .
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
