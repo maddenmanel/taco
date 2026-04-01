@@ -1,0 +1,29 @@
+{
+    "version": "0.1.0",
+    "description": "Terminal AI Configuration Organizer — switch Claude Code between AI providers with one command.",
+    "homepage": "https://github.com/maddenmanel/taco",
+    "license": "MIT",
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/maddenmanel/taco/releases/download/v0.1.0/taco-windows-amd64.exe",
+            "bin": [["taco-windows-amd64.exe", "taco"]]
+        },
+        "arm64": {
+            "url": "https://github.com/maddenmanel/taco/releases/download/v0.1.0/taco-windows-arm64.exe",
+            "bin": [["taco-windows-arm64.exe", "taco"]]
+        }
+    },
+    "checkver": {
+        "github": "https://github.com/maddenmanel/taco"
+    },
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://github.com/maddenmanel/taco/releases/download/v$version/taco-windows-amd64.exe"
+            },
+            "arm64": {
+                "url": "https://github.com/maddenmanel/taco/releases/download/v$version/taco-windows-arm64.exe"
+            }
+        }
+    }
+}

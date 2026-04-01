@@ -46,7 +46,22 @@ chmod +x taco
 sudo mv taco /usr/local/bin/
 ```
 
-#### Windows (PowerShell)
+#### Windows — Option A: Scoop (recommended, no security warning)
+
+[Scoop](https://scoop.sh) installs binaries without triggering Windows SmartScreen warnings.
+
+```powershell
+# Install Scoop if you don't have it
+irm get.scoop.sh | iex
+
+# Add the TACO bucket and install
+scoop bucket add taco https://github.com/maddenmanel/taco
+scoop install taco
+```
+
+#### Windows — Option B: PowerShell manual install
+
+> **Note on Windows SmartScreen:** Windows may show a security warning the first time you run a downloaded `.exe` from a new publisher. This is expected for any unsigned open-source binary. See [below](#windows-smartscreen-warning) for how to handle it safely.
 
 ```powershell
 # Download the binary
@@ -73,12 +88,20 @@ After installation, verify with:
 taco --help
 ```
 
-#### Windows (Scoop)
+#### Windows SmartScreen Warning
+
+When downloading an unsigned `.exe` directly, Windows SmartScreen may block it with _"Windows protected your PC"_. TACO is open source — you can review every line of code in this repository. To proceed:
+
+1. Click **"More info"** in the SmartScreen dialog
+2. Click **"Run anyway"**
+
+Or unblock it via PowerShell before running:
 
 ```powershell
-# Coming soon — once published to a scoop bucket:
-# scoop install taco
+Unblock-File -Path "$env:USERPROFILE\bin\taco.exe"
 ```
+
+**Use Scoop (Option A) to avoid this entirely** — Scoop bypasses SmartScreen for packages installed through its manifest system.
 
 ### Method 2: Go install (requires Go 1.24+)
 
